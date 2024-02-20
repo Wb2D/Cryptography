@@ -24,7 +24,7 @@ if __name__ == '__main__':
     ciphertext = input("Input text: ")
     period = find_period(ciphertext)
     print("Period:", period)
-    key = ['A'] * period
+    key = ['E'] * period
     fit = -100
     iterations = 0
     start_time = time.time()

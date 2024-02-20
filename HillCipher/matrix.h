@@ -8,6 +8,9 @@
 #include <random>
 #include <QtMath>
 
+#include "LetterIndexConverter.h"
+
+
 
 class Matrix
 {
@@ -24,24 +27,20 @@ public:
         if(col <= 0 || col > 3) {
             throw std::invalid_argument("Matrix size is wrong : Matrix(QString, int)");
         }
-        bool flagReg = data.at(0).isUpper();
         bool flagSize = data.length() % col == 0 ? true : false;
         for(const QChar &ch : data) {
-            if(flagReg == ch.isUpper()) {
-                _data.push_back(ch.toLatin1() - (flagReg ? 'A' : 'a'));
-            }
-            else if(ch == '_') {
-                _data.push_back(26);
-            }
-            else {
-                throw std::invalid_argument("Various input registers : Matrix(QString, int)");
+            int index = LetterIndexConverter::indexOfLetter(ALPHABET, ch);
+            if(index != QString("-1")) {
+                _data.push_back(index);
+            } else {
+                std::invalid_argument("Letter is wrong : Matrix(QString, int)");
             }
         }
         _rows = flagSize ? data.length() / col : data.length() / col + 1;
         if(!flagSize) {
             int j = 0;
             while(j < col -data.length() % col) {
-                _data.push_back(26);
+                _data.push_back(33);
                 ++j;
             }
         }
@@ -291,15 +290,7 @@ public:
 
 
     QString toLetters(const bool &flag) const {
-        QString result = {};
-        for(const int &num : _data) {
-            if(num != 26) {
-                result.append(QChar(num + (flag ? 'A' : 'a')));
-            } else {
-                result.append(QChar('_'));
-            }
-        }
-        return result;
+        return LetterIndexConverter::indicesToString(ALPHABET, this->_data);
     }
 
 private:

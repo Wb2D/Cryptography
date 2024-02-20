@@ -31,14 +31,14 @@ Matrix Encode(const Matrix &data, const Matrix &key) {
         result.replace("row", data.cut("row", i) * key, i);
     }
     // alphabet: English + _
-    return result % 27;
+    return result % N;
 }
 
 Matrix Decode(const Matrix &data, const Matrix &key) {
     int det = key.determinant(), x, y;
     QTextStream out(stdout, QIODevice::WriteOnly);
     out << "D = " << QString::number(det) << endl;
-    int gcd = gcdExtended(27, det, x, y);
+    int gcd = gcdExtended(N, det, x, y);
     if(gcd != 1) {
         out << "\nGCD(dit, 27) != 1 => Dinv not exist\n" << flush;
     }
@@ -53,24 +53,24 @@ Matrix Decode(const Matrix &data, const Matrix &key) {
     } else if(det < 0 && y < 0) {
         invDet = -y;
     }
-    Matrix inverseKey = (key.getAdjMatrix() % 27 * invDet % 27).transpose();
+    Matrix inverseKey = (key.getAdjMatrix() % N * invDet % N).transpose();
 
     for(int i = 0; i < inverseKey.getRows(); ++i) {
         for(int j = 0; j < inverseKey.getColumns(); ++j) {
             if(inverseKey(i, j) < 0) {
-                inverseKey(i, j) += 27;
+                inverseKey(i, j) += N;
             }
         }
     }
     out << "Inv key matrix:\n" << (inverseKey).toString("-f") << flush;
-    out << "Key * Inv_key:\n" << ((key * inverseKey) % 27).toString("-f") << flush;
+    out << "Key * Inv_key:\n" << ((key * inverseKey) % N).toString("-f") << flush;
     Matrix result(data.getRows(), data.getColumns());
     // split data and multiply each fragment by the key matrix : D = E * K
     for(int i = 0; i < data.getRows(); ++i) {
         result.replace("row", data.cut("row", i) * inverseKey, i);
     }
     // alphabet: English + _
-    return result % 27;
+    return result % N;
 }
 
 int main(int argc, char *argv[])
@@ -79,6 +79,7 @@ int main(int argc, char *argv[])
     Q_UNUSED(argc)
     Q_UNUSED(argv)
     // input and output streams
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("CP866"));
     QTextStream in(stdin, QIODevice::ReadOnly);
     QTextStream out(stdout, QIODevice::WriteOnly);
     // encoding data and key

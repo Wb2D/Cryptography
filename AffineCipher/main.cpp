@@ -1,11 +1,22 @@
 #include <QtCore>
 
 #include <QString>
+#include <QVector>
 #include <QTextStream>
+
+#include "LetterIndexConverter.h"
 
 /// USED:
 /// https://www.geeksforgeeks.org/implementation-affine-cipher/
 /// https://www.dcode.fr/affine-cipher
+
+
+const QVector<QPair<QString, int>> ALPHABET = {{ "а", 0 }, { "б", 1 },  { "в", 2 },  { "г", 3 },  { "д", 4 }, { "е", 5 },
+                                          { "ё", 6 }, { "ж", 7 }, { "з", 8 }, { "и", 9 }, { "й", 10 }, { "к", 11 }, { "л", 12 }, {"м", 13 },
+                                          { "н", 14 }, { "о", 15 }, { "п", 16 }, { "р", 17 }, { "с", 18 }, { "т", 19 }, { "у", 20 }, { "ф", 21 },
+                                          { "х", 22 }, { "ц", 23 }, { "ч", 24 }, { "ш", 25 }, { "щ", 26 }, { "ъ", 27 }, { "ы", 28 }, { "ь", 29 },
+                                          { "э", 30 }, { "ю", 31 }, { "я", 32 }};
+ const int N = 33;
 
 
 // function search greatest common divisor
@@ -33,8 +44,8 @@ uint GCD(int a, int b) {
 */
 uint MMI(const uint &a) {
     uint a_inv = 0;
-    for(int i = 0; i < 26; ++i) {
-        if(((a * i) % 26) == 1) {
+    for(int i = 0; i < N; ++i) {
+        if(((a * i) % N) == 1) {
             a_inv = i;
         }
     }
@@ -42,65 +53,36 @@ uint MMI(const uint &a) {
 }
 
 // function for encoding
-QString Encode(const QString &data, const uint &a, const uint &b) {
+QVector<int> encode(const QVector<int> &data, const uint &a, const uint &b) {
     // check for mutual primeness of a and b
-    if(GCD(a, b) == 1) {
-        // encoded result
-        QString result = {};
-        for(const QChar &ch : data) {
-            // check on letter
-            if(ch.isLetter()) {
-                // what not to check twice in the code below
-                bool flag = ch.isLower();
-                // convert character to numeric value in range 0-25 for letters
-                uint x = ch.toLatin1() - (flag ? 'a' : 'A');
-                // applying affine transformation: E(x) = ax + b (mod 26)
-                uint y = (a * x + b) % 26;
-                // putting into result
-                result.append(QChar(y + (flag ? 'a' : 'A')));
-            }
-            // not letter
-            else {
-                break;
-            }
-        }
-        // success!
-        return result;
+    if(GCD(a, N) != 1) {
+        std::invalid_argument("gcd(a, N) != 1");
     }
-    // a and b not mutual primeness
-    return QString("something went wrong");
+    // encoded result
+    QVector<int> result = {};
+    for(const int &x : data) {
+        // check on letter
+        result.append((a * x + b) % N);
+    }
+    // success!
+    return result;
 }
 
 // function for decoding
-QString Decode(const QString &data, const uint &a, const uint &b) {
+QVector<int> decode(const QVector<int> &data, const uint &a, const uint &b) {
     // check for mutual primeness of a and b
-    if(GCD(a, b) == 1) {
-        // decoded result
-        QString result = {};
-        for(const QChar &ch : data) {
-            // check on letter
-            if(ch.isLetter()) {
-                // what not to check twice in the code below
-                bool flag = ch.isLower();
-                // convert character to numeric value in range 0-25 for letters
-                uint x = ch.toLatin1() - (flag ? 'a' : 'A');
-                // multiplicative inverse of a
-                uint a_inv = MMI(a);
-                // applying decryption formula: D(x) = a_inv (x - b) (mod 26)
-                uint y = a_inv * (x - b + 26) % 26;
-                // putting into result
-                result.append(QChar(y + (flag ? 'a' : 'A')));
-            }
-            // not letter
-            else {
-                break;
-            }
-        }
-        // success!
-        return result;
+    if(GCD(a, N) != 1) {
+        std::invalid_argument("gcd(a, N) != 1");
     }
-    // a and b not mutual primeness
-    return QString("something went wrong");
+    // decoded result
+    QVector<int> result = {};
+    for(const int &x : data) {
+        // multiplicative inverse of a
+        uint a_inv = MMI(a);
+        result.append(a_inv * (x - b + N) % N);
+    }
+    // success!
+    return result;
 }
 
 int main(int argc, char *argv[])
@@ -109,6 +91,7 @@ int main(int argc, char *argv[])
     Q_UNUSED(argc)
     Q_UNUSED(argv);
     // input and output streams
+    QTextCodec::setCodecForLocale(QTextCodec::codecForName("CP866"));
     QTextStream in(stdin, QIODevice::ReadOnly);
     QTextStream out(stdout, QIODevice::WriteOnly);
     // data to encoding or decoding and key values a and b
@@ -123,6 +106,7 @@ int main(int argc, char *argv[])
         // input data
         out << "Input data: " << flush;
         data = in.readLine();
+        QVector<int> dataIndex = LetterIndexConverter::stringToIndices(ALPHABET, data);
         // input key value a
         out << "Input key value a: " << flush;
         a = in.readLine().toUInt();
@@ -136,11 +120,11 @@ int main(int argc, char *argv[])
         switch (listCommands.indexOf(userCommand)) {
         case 0:
             // encoding
-            out << "Success!\nEncoded data: " << Encode(data, a, b) << "\n>--------------------<" << endl;
+            out << "Success!\nEncoded data: " <<  LetterIndexConverter::indicesToString(ALPHABET, encode(dataIndex, a, b)) << "\n>--------------------<" << endl;
             break;
         case 1:
             // decoding
-            out << "Success!\nDecoded data: " << Decode(data, a, b) << "\n>--------------------<" << endl;
+            out << "Success!\nDecoded data: " <<  LetterIndexConverter::indicesToString(ALPHABET, decode(dataIndex, a, b)) << "\n>--------------------<" << endl;
             break;
         case 2:
             // exit

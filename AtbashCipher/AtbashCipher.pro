@@ -1,5 +1,6 @@
 QT -= gui
 
+CONFIG += UTF8
 CONFIG += c++11 console
 CONFIG -= app_bundle
 
@@ -14,3 +15,6 @@ SOURCES += \
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+HEADERS += \
+    LetterIndexConverter.h
