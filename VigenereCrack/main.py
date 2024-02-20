@@ -7,15 +7,17 @@ def decrypt(ciphertext, key):
     for i in range(len(ciphertext)):
         p = ALPHABET.index(ciphertext[i])
         k = ALPHABET.index(key[i % len(key)])
-        c = (p - k) % 26
+        c = (p - k) % 33
         plaintext += ALPHABET[c]
     return plaintext
 
 
 if __name__ == '__main__':
-    # input_file_path = 'Data/setWorlds.txt'
-    # output_file_path = 'Data/data.txt'
-    # process_text_in_file(input_file_path, output_file_path)
+    '''
+    input_file_path = 'Data/setWords.txt'
+    output_file_path = 'Data/data.txt'
+    process_text_in_file(input_file_path, output_file_path)
+    '''
     check_letters("Data/data.txt")
     with open('Data/data.txt', 'r', encoding='utf-8') as file:
         text = file.read()
@@ -24,14 +26,14 @@ if __name__ == '__main__':
     ciphertext = input("Input text: ")
     period = find_period(ciphertext)
     print("Period:", period)
-    key = ['E'] * period
+    key = ['о'] * period
     fit = -100
     iterations = 0
     start_time = time.time()
-    while fit < -10:
+    while fit < -10.5:
         K = key[:]
         x = randrange(period)
-        for i in range(26):
+        for i in range(33):
             iterations += 1
             K[x] = ALPHABET[i]
             pt = decrypt(ciphertext, K)
